@@ -1,0 +1,156 @@
+networks:
+  
+  app-net:
+    driver: bridge
+  
+  pulsar-net:
+    name: pulsar-net
+    driver: bridge
+  pulsar:
+    driver: bridge
+
+services:
+  # ==============
+  # Base de datos
+  # ==============
+  db_services:
+    image: postgres:13
+    container_name: postgres_db
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=saludtech_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - app-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d saludtech_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+
+  zookeeper:
+    image: apachepulsar/pulsar:latest
+    container_name: zookeeper
+    restart: on-failure
+    networks:
+      - pulsar-net
+    volumes:
+      - ./data/zookeeper:/pulsar/data/zookeeper
+    environment:
+      - metadataStoreUrl=zk:zookeeper:2181
+    command: >
+      bash -c "bin/apply-config-from-env.py conf/zookeeper.conf &&
+               bin/generate-zookeeper-config.sh conf/zookeeper.conf &&
+               exec bin/pulsar zookeeper"
+    healthcheck:
+      test: ["CMD", "bin/pulsar-zookeeper-ruok.sh"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+  pulsar-init:
+    container_name: pulsar-init
+    hostname: pulsar-init
+    image: apachepulsar/pulsar:latest
+    networks:
+      - pulsar-net
+    command: >
+      bin/pulsar initialize-cluster-metadata
+      --cluster cluster-a
+      --zookeeper zookeeper:2181
+      --configuration-store zookeeper:2181
+      --web-service-url http://broker:8080
+      --broker-service-url pulsar://broker:6650
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+
+
+  bookie:
+    image: apachepulsar/pulsar:latest
+    user: root
+    container_name: bookie
+    restart: on-failure
+    networks:
+      - pulsar-net
+    environment:
+      - clusterName=cluster-a
+      - zkServers=zookeeper:2181
+      - metadataServiceUri=metadata-store:zk:zookeeper:2181
+      - BOOKIE_IS_LOST_NODE_RECOVERY=true
+      - BOOKIE_ALLOW_STORAGE_EXPAND=true
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+      pulsar-init:
+        condition: service_completed_successfully
+    volumes:
+      - bookkeeper_data:/pulsar/data/bookkeeper
+    command: bash -c "bin/apply-config-from-env.py conf/bookkeeper.conf &&
+                      exec bin/pulsar bookie"
+
+  broker:
+    image: apachepulsar/pulsar:latest
+    container_name: broker
+    hostname: broker
+    restart: on-failure
+    networks:
+      - pulsar-net
+    environment:
+      - metadataStoreUrl=zk:zookeeper:2181
+      - zookeeperServers=zookeeper:2181
+      - clusterName=cluster-a
+      - managedLedgerDefaultEnsembleSize=1
+      - managedLedgerDefaultWriteQuorum=1
+      - managedLedgerDefaultAckQuorum=1
+      - advertisedAddress=broker
+      - advertisedListeners=external:pulsar://127.0.0.1:6650
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+      bookie:
+        condition: service_started
+    ports:
+      - "6650:6650"
+      - "8080:8080"
+    command: bash -c "bin/apply-config-from-env.py conf/broker.conf &&
+                      exec bin/pulsar broker"
+
+  # ==============
+  # Aplicación saludtech
+  # ==============
+  saludtech_app:
+    container_name: saludtech_app
+    build: .
+    networks:
+      - app-net
+      
+      - pulsar-net
+    depends_on:
+      db_services:
+        condition: service_healthy
+      broker:
+        condition: service_started
+    environment:
+      - FLASK_ENV=development
+      - DB_HOST=db_services
+      - DB_USER=user
+      - DB_PASSWORD=password
+      - DB_NAME=saludtech_db
+      - PULSAR_ADDRESS=broker
+    ports:
+      - "5000:5000"
+
+# ==============
+# Volúmenes
+# ==============
+volumes:
+  pgdata:
+  bookkeeper_data:
+  
+
