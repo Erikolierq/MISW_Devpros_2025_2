@@ -1,23 +1,36 @@
-"""
-Módulo base para eventos de dominio.
-"""
-import json
-import datetime
+"""Entidades reusables parte del seedwork del proyecto
 
-class EventoDominioBase:
-    """
-    Evento de dominio genérico.
-    """
-    def __init__(self, nombre, datos, version=1):
-        self.nombre = nombre
-        self.datos = datos
-        self.version = version
-        self.timestamp = datetime.datetime.utcnow().isoformat()
+En este archivo usted encontrará las clases para eventos reusables parte del seedwork del proyecto
 
-    def to_json(self):
-        return json.dumps({
-            "nombre": self.nombre,
-            "datos": self.datos,
-            "version": self.version,
-            "timestamp": self.timestamp
-        })
+"""
+
+from dataclasses import dataclass, field
+from .reglas import IdEntidadEsInmutable
+from .excepciones import IdDebeSerInmutableExcepcion
+from datetime import datetime
+import uuid
+from abc import ABC
+from dataclasses import dataclass
+
+@dataclass
+class EventoDominio(ABC):
+    id: uuid.UUID = field(hash=True)
+    _id: uuid.UUID = field(init=False, repr=False, hash=True)
+    fecha_evento: datetime =  field(default=datetime.now())
+    
+    def __post_init__(self):
+        if not self.fecha_evento:
+            self.fecha_evento = datetime.utcnow()
+    @classmethod
+    def siguiente_id(self) -> uuid.UUID:
+        return uuid.uuid4()
+
+    @property
+    def id(self):
+        return self._id
+
+    @id.setter
+    def id(self, id: uuid.UUID) -> None:
+        if not IdEntidadEsInmutable(self).es_valido():
+            raise IdDebeSerInmutableExcepcion()
+        self._id = self.siguiente_id()

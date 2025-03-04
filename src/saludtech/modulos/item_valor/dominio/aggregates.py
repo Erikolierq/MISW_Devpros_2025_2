@@ -1,6 +1,6 @@
-from modulos.item_valor.dominio.entidades import ClinicalResult
-from modulos.item_valor.dominio.objetos_valor import PatientName, ResultText
-from modulos.item_valor.dominio.events import ResultCreatedEvent
+from saludtech.modulos.item_valor.dominio.entidades import ResultadoClinico
+from saludtech.modulos.item_valor.dominio.objetos_valor import Paciente, ResultadoClinico
+from saludtech.modulos.item_valor.dominio.events import ResultadoClinicoCreado
 
 
 class ClinicalResultAggregate:
@@ -8,8 +8,8 @@ class ClinicalResultAggregate:
     Ejemplo de agregado que gestiona la creación del resultado clínico y
     asegura la consistencia de sus objetos de valor.
     """
-    def __init__(self, patient_vo: PatientName, result_vo: ResultText):
-        self.clinical_result = ClinicalResult(
+    def __init__(self, patient_vo: Paciente, result_vo: ResultadoClinico):
+        self.clinical_result = ResultadoClinico(
             id=None,
             patient=patient_vo.value,
             result=result_vo.value
@@ -17,8 +17,8 @@ class ClinicalResultAggregate:
 
     @staticmethod
     def create(patient: str, result: str):
-        patient_vo = PatientName(patient)
-        result_vo = ResultText(result)
+        patient_vo = Paciente(patient)
+        result_vo = ResultadoClinico(result)
         aggregate = ClinicalResultAggregate(patient_vo, result_vo)
         return aggregate
 

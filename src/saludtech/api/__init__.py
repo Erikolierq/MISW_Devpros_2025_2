@@ -10,22 +10,22 @@ from flask_jwt_extended import JWTManager
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 def registrar_handlers():
-    import modulos.item_valor.aplicacion
-    import modulos.certificator.aplicacion
-    import modulos.auth.aplicacion
-    import modulos.users.aplicacion
+    import saludtech.modulos.item_valor.aplicacion
+    import saludtech.modulos.certificator.aplicacion
+    import saludtech.modulos.auth.aplicacion
+    import saludtech.modulos.users.aplicacion
 
 def importar_modelos_alchemy():
-    import modulos.item_valor.infraestructura.dto
-    import modulos.certificator.infraestructura.dto
-    import modulos.auth.infraestructura.dto
-    import modulos.users.infraestructura.dto
+    from saludtech.modulos.item_valor.infraestructura import dto as itemdto
+    from saludtech.modulos.certificator.infraestructura import dto as certificatordto
+    from saludtech.modulos.auth.infraestructura import dto as authdto
+    from saludtech.modulos.users.infraestructura import dto as usersdto
 
 def comenzar_consumidor():
-    import modulos.item_valor.infraestructura.consumidores as item_valor
-    import modulos.certificator.infraestructura.consumidores as certificator
-    import modulos.auth.infraestructura.consumidores as auth
-    import modulos.users.infraestructura.consumidores as users
+    import saludtech.modulos.item_valor.infraestructura.consumidores as item_valor
+    import saludtech.modulos.certificator.infraestructura.consumidores as certificator
+    import saludtech.modulos.auth.infraestructura.consumidores as auth
+    import saludtech.modulos.users.infraestructura.consumidores as users
 
     # Suscripción a eventos
     threading.Thread(target=item_valor.suscribirse_a_eventos).start()
@@ -43,7 +43,7 @@ def create_app(configuracion={}):
     # Init la aplicacion de Flask
     app = Flask(__name__, instance_relative_config=True)
     
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'database.db')
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://user:password@db_services:5432/saludtech_db'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['JWT_SECRET_KEY'] = 'super-secret-key'  
     app.config['JWT_TOKEN_LOCATION'] = ['headers']  
@@ -55,9 +55,9 @@ def create_app(configuracion={}):
     app.config['TESTING'] = configuracion.get('TESTING')
     jwt = JWTManager(app) 
     
-    from config.db import init_db
+    from saludtech.config.db import init_db
     init_db(app)
-    from config.db import db
+    from saludtech.config.db import db
     importar_modelos_alchemy()
     registrar_handlers()
 
@@ -89,3 +89,8 @@ def create_app(configuracion={}):
         return {"status": "up"}
 
     return app
+
+if __name__ == "__main__":
+    print("Starting the Flask application...")
+    app = create_app()
+    app.run(host="0.0.0.0", port=5000, debug=True)

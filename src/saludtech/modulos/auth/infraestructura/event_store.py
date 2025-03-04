@@ -1,6 +1,6 @@
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, JSON, DateTime, Boolean
-from config.db import db
+from saludtech.config.db import db
 
 class AuthEventStore(db.Model):
     __tablename__ = 'auth_event_store'

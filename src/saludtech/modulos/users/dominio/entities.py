@@ -1,31 +1,19 @@
-from dataclasses import dataclass
+from __future__ import annotations
+from dataclasses import dataclass, field
+import uuid
+
+from saludtech.modulos.users.dominio.events import UsuarioCreado
+from saludtech.seedwork.dominio.entidades import AgregacionRaiz
 
 @dataclass
-class User:
-    """
-    Entidad que representa a un usuario.
-    """
-    id: int
+class Usuario(AgregacionRaiz):
     username: str
-    password: str   # En producción, almacenar la contraseña en forma segura (hash)
+    password: str
     role: int
 
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "username": self.username,
-            "role": self.role
-            # Por seguridad, no se recomienda exponer password
-        }
+    def crear_usuario(self, usuario: Usuario):
+        self.username = usuario.username
+        self.password = usuario.password
+        self.role = usuario.role
 
-    def to_dto(self):
-        """
-        Convierte la entidad a un objeto DTO para persistir en la base de datos.
-        """
-        from modulos.users.infraestructura.dto import UserDTO
-        return UserDTO(
-            id=self.id,
-            username=self.username,
-            password=self.password,
-            role=self.role
-        )
+        self.agregar_evento(UsuarioCreado(id_usuario=self.id, username=self.username, role=self.role))

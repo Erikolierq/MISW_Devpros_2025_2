@@ -1,31 +1,17 @@
-import json
-import datetime
+from __future__ import annotations
+from dataclasses import dataclass
+from saludtech.seedwork.dominio.eventos import EventoDominio
+from datetime import datetime
+import uuid
 
-class DomainEvent:
-    """
-    Clase base para los eventos de dominio.
-    """
-    def __init__(self, name, data, version=1):
-        self.name = name
-        self.data = data
-        self.version = version
-        self.timestamp = datetime.datetime.utcnow().isoformat()
+@dataclass
+class PermisoValidado(EventoDominio):
+    id_usuario: uuid.UUID = None
+    role: int = None
+    fecha_validacion: datetime = None
 
-    def to_json(self):
-        return json.dumps({
-            "name": self.name,
-            "data": self.data,
-            "version": self.version,
-            "timestamp": self.timestamp
-        })
-
-class PermissionValidatedEvent(DomainEvent):
-    def __init__(self, user_role, allowed, version=1):
-        super().__init__(
-            "PermissionValidated",
-            {
-                "user_role": user_role,
-                "allowed": allowed
-            },
-            version
-        )
+@dataclass
+class PermisoDenegado(EventoDominio):
+    id_usuario: uuid.UUID = None
+    role: int = None
+    fecha_validacion: datetime = None

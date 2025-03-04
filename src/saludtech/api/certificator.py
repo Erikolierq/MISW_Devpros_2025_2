@@ -3,7 +3,7 @@ from flask_jwt_extended import jwt_required, get_jwt
 
 certificator_bp = Blueprint('certificator', __name__)
 
-@certificator_bp.route('/certificator', methods=['GET'])
+@certificator_bp.route('/validate', methods=['GET'])
 @jwt_required()
 def validate():
     """Valida los permisos del usuario basado en su rol."""

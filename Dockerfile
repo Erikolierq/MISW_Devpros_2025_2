@@ -1,5 +1,5 @@
 
-FROM python:3.13
+FROM python:3.11
 
 WORKDIR /app
 
@@ -11,7 +11,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 ENV FLASK_APP=src/saludtech/api/__init__.py
+ENV PYTHONPATH=/app/src
 
 EXPOSE 5000
 
-CMD ["flask", "run", "--host=0.0.0.0"]
+CMD ["python", "-m", "flask", "run", "--host=0.0.0.0", "--port=5000"]
+

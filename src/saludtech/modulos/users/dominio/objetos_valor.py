@@ -1,14 +1,24 @@
-class UsernameVO:
-    """
-    Ejemplo de un objeto de valor para el nombre de usuario.
-    """
-    def __init__(self, value: str):
-        if not value or len(value.strip()) < 3:
-            raise ValueError("El nombre de usuario debe tener al menos 3 caracteres.")
-        self.value = value
+"""Objetos valor del dominio de usuarios
 
-    def __eq__(self, other):
-        return isinstance(other, UsernameVO) and self.value == other.value
+En este archivo encontrará los objetos valor del dominio de usuarios
+"""
 
-    def __str__(self):
-        return self.value
+from __future__ import annotations
+from dataclasses import dataclass, field
+from enum import Enum
+from saludtech.seedwork.dominio.objetos_valor import ObjetoValor
+
+@dataclass(frozen=True)
+class NombreUsuario(ObjetoValor):
+    """Objeto valor para representar el nombre de usuario"""
+    valor: str
+
+@dataclass(frozen=True)
+class Contrasena(ObjetoValor):
+    """Objeto valor para representar la contraseña de un usuario"""
+    valor: str
+
+class RolUsuario(Enum):
+    """Roles posibles en el sistema"""
+    ADMIN = 1
+    USUARIO = 2

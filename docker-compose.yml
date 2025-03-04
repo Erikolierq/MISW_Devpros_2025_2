@@ -92,8 +92,8 @@ services:
     volumes:
       - bookkeeper_data:/pulsar/data/bookkeeper
     command: bash -c "bin/apply-config-from-env.py conf/bookkeeper.conf &&
-                      exec bin/pulsar bookie"
-
+                        exec bin/pulsar bookie"
+  
   broker:
     image: apachepulsar/pulsar:latest
     container_name: broker
@@ -109,7 +109,8 @@ services:
       - managedLedgerDefaultWriteQuorum=1
       - managedLedgerDefaultAckQuorum=1
       - advertisedAddress=broker
-      - advertisedListeners=external:pulsar://127.0.0.1:6650
+      - advertisedListeners=internal:pulsar://broker:6650,external:pulsar://0.0.0.0:6650
+
     depends_on:
       zookeeper:
         condition: service_healthy
@@ -120,9 +121,10 @@ services:
       - "8080:8080"
     command: bash -c "bin/apply-config-from-env.py conf/broker.conf &&
                       exec bin/pulsar broker"
-
-  # ==============
-  # Aplicación saludtech
+  
+  
+    # ==============
+    # Aplicación saludtech
   # ==============
   saludtech_app:
     container_name: saludtech_app
@@ -142,7 +144,7 @@ services:
       - DB_USER=user
       - DB_PASSWORD=password
       - DB_NAME=saludtech_db
-      - PULSAR_ADDRESS=broker
+      - PULSAR_ADDRESS=pulsar://broker:6650
     ports:
       - "5000:5000"
 

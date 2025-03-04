@@ -1,34 +1,23 @@
-class PatientName:
-    """
-    Ejemplo de objeto de valor que valida el nombre del paciente.
-    """
-    def __init__(self, value: str):
-        if not isinstance(value, str) or not value.strip():
-            raise ValueError("El nombre del paciente no puede estar vacío.")
-        self.value = value
+"""Objetos valor del dominio de resultados clínicos
 
-    def __eq__(self, other):
-        if not isinstance(other, PatientName):
-            return False
-        return self.value == other.value
+En este archivo encontrará los objetos valor del dominio de resultados clínicos
+"""
 
-    def __str__(self):
-        return self.value
+from __future__ import annotations
+from dataclasses import dataclass, field
+from datetime import datetime
+from saludtech.seedwork.dominio.objetos_valor import ObjetoValor
 
+@dataclass(frozen=True)
+class Paciente(ObjetoValor):
+    """Representa la información básica del paciente"""
+    id_paciente: str
+    nombre: str
 
-class ResultText:
-    """
-    Ejemplo de objeto de valor que valida el texto del resultado.
-    """
-    def __init__(self, value: str):
-        if not isinstance(value, str) or len(value.strip()) < 3:
-            raise ValueError("El resultado clínico debe tener al menos 3 caracteres.")
-        self.value = value
-
-    def __eq__(self, other):
-        if not isinstance(other, ResultText):
-            return False
-        return self.value == other.value
-
-    def __str__(self):
-        return self.value
+@dataclass(frozen=True)
+class ResultadoClinico(ObjetoValor):
+    """Representa un resultado clínico"""
+    id_resultado: str
+    paciente: Paciente
+    resultado: str
+    fecha: datetime

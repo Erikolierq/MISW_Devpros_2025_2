@@ -1,43 +1,18 @@
-import json
-import datetime
+from __future__ import annotations
+from dataclasses import dataclass
+from saludtech.seedwork.dominio.eventos import EventoDominio
+from datetime import datetime
+import uuid
 
-class DomainEvent:
-    """
-    Clase base para todos los eventos de dominio.
-    """
-    def __init__(self, name, data, version=1):
-        self.name = name
-        self.data = data
-        self.version = version
-        self.timestamp = datetime.datetime.utcnow().isoformat()
+@dataclass
+class ResultadoClinicoCreado(EventoDominio):
+    id_resultado: uuid.UUID = None
+    patient: str = None
+    result_text: str = None
+    fecha_creacion: datetime = None
 
-    def to_json(self):
-        return json.dumps({
-            "name": self.name,
-            "data": self.data,
-            "version": self.version,
-            "timestamp": self.timestamp
-        })
-
-class ResultCreatedEvent(DomainEvent):
-    def __init__(self, result_id, patient, result_text, version=1):
-        super().__init__(
-            "ResultCreated",
-            {
-                "result_id": result_id,
-                "patient": patient,
-                "result": result_text
-            },
-            version
-        )
-
-class ResultQueriedEvent(DomainEvent):
-    def __init__(self, user_id, result_id, version=1):
-        super().__init__(
-            "ResultQueried",
-            {
-                "user_id": user_id,
-                "result_id": result_id
-            },
-            version
-        )
+@dataclass
+class ResultadoConsultado(EventoDominio):
+    id_resultado: uuid.UUID = None
+    id_usuario: uuid.UUID = None
+    fecha_consulta: datetime = None

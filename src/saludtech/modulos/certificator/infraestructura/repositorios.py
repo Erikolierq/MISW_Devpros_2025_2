@@ -1,27 +1,26 @@
-from modulos.certificator.dominio.entidades import CertPermission
-from modulos.certificator.infraestructura.dto import CertPermissionDTO
+""" Repositorio de persistencia para certificaciones """
 
-class CertificatorRepository:
-    def __init__(self, session):
-        self.session = session
+from saludtech.config.db import db
+from saludtech.modulos.certificator.dominio.repositorios import RepositorioCertificacion
+from saludtech.modulos.certificator.dominio.entidades import Permiso as Certificacion
+from saludtech.modulos.certificator.dominio.fabricas import FabricaCertificacion
+from saludtech.modulos.certificator.infraestructura.dto import RoleValidation as CertificacionDTO
+from saludtech.modulos.certificator.infraestructura.mapeadores import MapeadorCertificacion
+from uuid import UUID
 
-    def get_permiso_por_rol(self, role_id: int):
-        """
-        Retorna una descripción de permiso para el rol, o None si no existe.
-        """
-        dto = self.session.query(CertPermissionDTO).get(role_id)
-        if dto:
-            return CertPermission(
-                role_id=dto.role_id,
-                description=dto.description
-            )
-        return None
+class RepositorioCertificacionesSQLite(RepositorioCertificacion):
 
-    def add_permiso(self, permiso: CertPermission):
-        dto = CertPermissionDTO(
-            role_id=permiso.role_id,
-            description=permiso.description
-        )
-        self.session.add(dto)
-        self.session.commit()
-        return dto
+    def __init__(self):
+        self._fabrica_certificaciones: FabricaCertificacion = FabricaCertificacion()
+
+    @property
+    def fabrica_certificaciones(self):
+        return self._fabrica_certificaciones
+
+    def obtener_por_id(self, id: UUID) -> Certificacion:
+        cert_dto = db.session.query(CertificacionDTO).filter_by(id=str(id)).one_or_none()
+        return self.fabrica_certificaciones.crear_objeto(cert_dto, MapeadorCertificacion()) if cert_dto else None
+
+    def obtener_por_usuario(self, user_id: UUID) -> Certificacion:
+        cert_dto = db.session.query(CertificacionDTO).filter_by(user_id=str(user_id)).one_or_none()
+        return self.fabrica_certificaciones.crear_objeto(cert_dto, MapeadorCertificacion()) if cert_dto else None

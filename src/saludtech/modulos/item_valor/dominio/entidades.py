@@ -1,17 +1,17 @@
-from dataclasses import dataclass
+from __future__ import annotations
+from dataclasses import dataclass, field
+import uuid
+
+from saludtech.modulos.item_valor.dominio.events import ResultadoClinicoCreado
+from saludtech.seedwork.dominio.entidades import AgregacionRaiz
 
 @dataclass
-class ClinicalResult:
-    """
-    Entidad principal que representa un resultado clínico.
-    """
-    id: int = None
-    patient: str = ""
-    result: str = ""
+class ResultadoClinico(AgregacionRaiz):
+    patient: str
+    result_text: str
 
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "patient": self.patient,
-            "result": self.result
-        }
+    def crear_resultado_clinico(self, resultado: ResultadoClinico):
+        self.patient = resultado.patient
+        self.result_text = resultado.result_text
+
+        self.agregar_evento(ResultadoClinicoCreado(id_resultado=self.id, patient=self.patient, result_text=self.result_text))

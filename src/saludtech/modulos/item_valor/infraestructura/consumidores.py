@@ -1,19 +1,56 @@
-"""Consumidores de eventos y comandos usando, por ejemplo, Pulsar u otro mensaje broker."""
+import pulsar, _pulsar
+from pulsar.schema import AvroSchema
+import logging
+import traceback
 
-import time
+from saludtech.modulos.item_valor.infraestructura.schema.v1.eventos import EventoResultadoClinicoCreado
+from saludtech.modulos.item_valor.infraestructura.schema.v1.comandos import ComandoCrearResultadoClinico
+from saludtech.seedwork.infraestructura import utils
 
 def suscribirse_a_eventos():
-    # Simulación de un consumidor de eventos.
-    while True:
-        # Lógica para escuchar eventos de Pulsar, RabbitMQ, etc.
-        time.sleep(5)
-        # Deserializar evento y procesarlo
-        # Ejemplo: print("Recibido evento de item_valor_service")
-        pass
+    cliente = None
+    try:
+        cliente = pulsar.Client("pulsar://broker:6650")
+
+        consumidor = cliente.subscribe(
+            'eventos-resultados',
+            consumer_type=_pulsar.ConsumerType.Shared,
+            subscription_name='saludtech-resultados-sub-eventos',
+            schema=AvroSchema(EventoResultadoClinicoCreado)
+        )
+
+        while True:
+            mensaje = consumidor.receive()
+            print(f'Evento recibido (Resultado Clínico Creado): {mensaje.value().data}')
+            consumidor.acknowledge(mensaje)
+
+        cliente.close()
+    except:
+        logging.error('ERROR: Suscribiéndose al tópico de eventos de resultados clínicos!')
+        traceback.print_exc()
+        if cliente:
+            cliente.close()
 
 def suscribirse_a_comandos():
-    # Simulación de un consumidor de comandos.
-    while True:
-        # Lógica para escuchar comandos
-        time.sleep(5)
-        pass
+    cliente = None
+    try:
+        cliente = pulsar.Client("pulsar://broker:6650")
+
+        consumidor = cliente.subscribe(
+            'comandos-resultados',
+            consumer_type=_pulsar.ConsumerType.Shared,
+            subscription_name='saludtech-resultados-sub-comandos',
+            schema=AvroSchema(ComandoCrearResultadoClinico)
+        )
+
+        while True:
+            mensaje = consumidor.receive()
+            print(f'Comando recibido (Crear Resultado Clínico): {mensaje.value().data}')
+            consumidor.acknowledge(mensaje)
+
+        cliente.close()
+    except:
+        logging.error('ERROR: Suscribiéndose al tópico de comandos de resultados clínicos!')
+        traceback.print_exc()
+        if cliente:
+            cliente.close()

@@ -1,12 +1,8 @@
-"""
-Módulo base para elementos de la capa de presentación (API).
-"""
+import functools
 
-from flask import Blueprint
+from flask import (
+    Blueprint, flash, g, redirect, render_template, request, session, url_for
+)
 
-def crear_blueprint(nombre, prefijo_url):
-    """
-    Helper para crear un Blueprint estándar.
-    """
-    bp = Blueprint(nombre, __name__, url_prefix=prefijo_url)
-    return bp
+def crear_blueprint(identificador: str, prefijo_url: str):
+    return Blueprint(identificador, __name__, url_prefix=prefijo_url)

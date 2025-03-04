@@ -2,7 +2,7 @@
 
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, JSON, DateTime, Boolean
-from config.db import db
+from saludtech.config.db import db
 import json
 
 class EventStore(db.Model):

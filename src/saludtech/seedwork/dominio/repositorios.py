@@ -1,16 +1,46 @@
+""" Interfaces para los repositorios reusables parte del seedwork del proyecto
+
+En este archivo usted encontrará las diferentes interfaces para repositorios
+reusables parte del seedwork del proyecto
+
 """
-Módulo base para repositorios (interfaces) en DDD.
-"""
 
-class RepositorioBase:
-    def obtener_por_id(self, id_):
-        raise NotImplementedError
+from abc import ABC, abstractmethod
+from uuid import UUID
+from .entidades import Entidad
 
-    def agregar(self, entidad):
-        raise NotImplementedError
+class Repositorio(ABC):
+    @abstractmethod
+    def obtener_por_id(self, id: UUID) -> Entidad:
+        ...
 
-    def actualizar(self, entidad):
-        raise NotImplementedError
+    @abstractmethod
+    def obtener_todos(self) -> list[Entidad]:
+        ...
 
-    def eliminar(self, id_):
-        raise NotImplementedError
+    @abstractmethod
+    def agregar(self, entity: Entidad):
+        ...
+
+    @abstractmethod
+    def actualizar(self, entity: Entidad):
+        ...
+
+    @abstractmethod
+    def eliminar(self, entity_id: UUID):
+        ...
+
+
+class Mapeador(ABC):
+    @abstractmethod
+    def obtener_tipo(self) -> type:
+        ...
+
+    @abstractmethod
+    def entidad_a_dto(self, entidad: Entidad) -> any:
+        ...
+
+    @abstractmethod
+    def dto_a_entidad(self, dto: any) -> Entidad:
+        ...
+    

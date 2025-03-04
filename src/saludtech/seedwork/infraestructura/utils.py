@@ -1,8 +1,8 @@
-"""
-Utilidades generales para la infraestructura.
-"""
+import time
+import os
 
-def convertir_a_cadena(valor):
-    if valor is None:
-        return ""
-    return str(valor)
+def time_millis():
+    return int(time.time() * 1000)
+
+def broker_host():
+    return os.getenv('BROKER_HOST', default="localhost")

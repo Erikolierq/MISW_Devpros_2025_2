@@ -1,11 +1,11 @@
-"""Data Transfer Objects (DTO) para mapear la entidad ClinicalResult con la base de datos (SQLAlchemy)."""
+from saludtech.config.db import db
+import uuid
+from datetime import datetime
 
-from sqlalchemy import Column, Integer, String
-from config.db import db
-
-class ClinicalResultDTO(db.Model):
-    __tablename__ = 'clinical_results'
-
-    id = Column(Integer, primary_key=True)
-    patient = Column(String(100), nullable=False)
-    result = Column(String(200), nullable=False)
+class ClinicalResult(db.Model):
+    __tablename__ = "clinical_results"
+    
+    id = db.Column(db.String, primary_key=True)
+    patient = db.Column(db.String, nullable=False)
+    result = db.Column(db.Text, nullable=False)
+    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)

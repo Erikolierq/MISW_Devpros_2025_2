@@ -1,28 +1,31 @@
-"""Repositorio que interactúa con la base de datos y gestiona la persistencia de los resultados clínicos."""
+""" Repositorio de persistencia para resultados clínicos """
 
-from modulos.item_valor.dominio.entidades import ClinicalResult
-from modulos.item_valor.infraestructura.dto import ClinicalResultDTO
+from saludtech.config.db import db
+from saludtech.modulos.item_valor.dominio.repositorios import RepositorioResultadosClinicos
+from saludtech.modulos.item_valor.dominio.entidades import ResultadoClinico
+from saludtech.modulos.item_valor.dominio.fabricas import FabricaResultadosClinicos
+from saludtech.modulos.item_valor.infraestructura.dto import ClinicalResult as ResultadoClinicoDTO
+from saludtech.modulos.item_valor.infraestructura.mapeadores import MapeadorResultadoClinico
+from uuid import UUID
 
-class ClinicalResultRepository:
-    def __init__(self, session):
-        self.session = session
+class RepositorioResultadosClinicosSQLite(RepositorioResultadosClinicos):
 
-    def get_by_id(self, result_id: int):
-        dto = self.session.query(ClinicalResultDTO).get(result_id)
-        if dto:
-            return ClinicalResult(
-                id=dto.id,
-                patient=dto.patient,
-                result=dto.result
-            )
-        return None
+    def __init__(self):
+        self._fabrica_resultados: FabricaResultadosClinicos = FabricaResultadosClinicos()
 
-    def add(self, clinical_result: ClinicalResult):
-        dto = ClinicalResultDTO(
-            patient=clinical_result.patient,
-            result=clinical_result.result
-        )
-        self.session.add(dto)
-        self.session.flush()  # para generar el id
-        clinical_result.id = dto.id
-        return dto
+    @property
+    def fabrica_resultados(self):
+        return self._fabrica_resultados
+
+    def obtener_por_id(self, id: UUID) -> ResultadoClinico:
+        resultado_dto = db.session.query(ResultadoClinicoDTO).filter_by(id=str(id)).one_or_none()
+        return self.fabrica_resultados.crear_objeto(resultado_dto, MapeadorResultadoClinico()) if resultado_dto else None
+
+    def obtener_todos(self) -> list[ResultadoClinico]:
+        resultados_dto = db.session.query(ResultadoClinicoDTO).all()
+        return [self.fabrica_resultados.crear_objeto(resultado, MapeadorResultadoClinico()) for resultado in resultados_dto]
+
+    def agregar(self, resultado: ResultadoClinico):
+        resultado_dto = self.fabrica_resultados.crear_objeto(resultado, MapeadorResultadoClinico())
+        db.session.add(resultado_dto)
+        db.session.commit()

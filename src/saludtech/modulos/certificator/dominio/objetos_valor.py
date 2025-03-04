@@ -1,14 +1,21 @@
-class RoleValue:
-    """
-    Objeto de valor para representar el rol de usuario.
-    """
-    def __init__(self, role_id: int):
-        if role_id not in [1, 2]:  # Ajusta según lógica de negocio
-            raise ValueError("Rol no válido para este sistema")
-        self.role_id = role_id
+"""Objetos valor del dominio de certificación
 
-    def __eq__(self, other):
-        return isinstance(other, RoleValue) and self.role_id == other.role_id
+En este archivo encontrará los objetos valor del dominio de certificación
+"""
 
-    def __str__(self):
-        return str(self.role_id)
+from __future__ import annotations
+from dataclasses import dataclass
+from enum import Enum
+from saludtech.seedwork.dominio.objetos_valor import ObjetoValor
+
+@dataclass(frozen=True)
+class Certificado(ObjetoValor):
+    """Objeto valor que representa un certificado de autorización"""
+    id_certificado: str
+    usuario_id: str
+    rol: int
+
+class TipoPermiso(Enum):
+    """Define los tipos de permisos disponibles"""
+    RESTRINGIDO = "Restringido"
+    PERMITIDO = "Permitido"

@@ -1,8 +1,12 @@
-from config.db import db
-from sqlalchemy import Column, Integer, String
+from saludtech.config.db import db
+import uuid
+from datetime import datetime
 
-class CertPermissionDTO(db.Model):
-    __tablename__ = 'cert_permissions'
-
-    role_id = Column(Integer, primary_key=True)
-    description = Column(String(200), nullable=False)
+class RoleValidation(db.Model):
+    __tablename__ = "role_validations"
+    
+    id = db.Column(db.String, primary_key=True)
+    user_id = db.Column(db.String, db.ForeignKey("users.id"), nullable=False)
+    role = db.Column(db.Integer, nullable=False)
+    permitido = db.Column(db.Boolean, nullable=False, default=False)
+    fecha_validacion = db.Column(db.DateTime, default=datetime.utcnow)

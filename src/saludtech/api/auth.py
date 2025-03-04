@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import create_access_token
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-from modulos.auth.aplicacion.queries import ObtenerUsuarioPorCredencialesQuery
+from saludtech.modulos.auth.aplicacion.queries import ObtenerUsuarioPorCredencialesQuery
 from seedwork.aplicacion.queries import ejecutar_query
 import time
 
@@ -16,7 +16,7 @@ blocked_ips = {}
 MAX_ATTEMPTS = 5  
 BLOCK_TIME = 300  
 
-@limiter.limit("10 per minute")
+
 @auth_bp.route('/login', methods=['POST'])
 def login():
     """Autentica un usuario y genera un token JWT sin uso de Redis."""

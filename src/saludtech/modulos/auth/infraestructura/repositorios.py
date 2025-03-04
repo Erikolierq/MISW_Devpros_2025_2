@@ -1,31 +1,31 @@
-from modulos.auth.dominio.entities import AuthUser
-from modulos.auth.infraestructura.dto import AuthUserDTO
+""" Repositorio de persistencia para autenticación """
 
-class AuthRepository:
-    def __init__(self, session):
-        self.session = session
+from saludtech.config.db import db
+from saludtech.modulos.auth.dominio.repositorios import RepositorioAuth
+from saludtech.modulos.auth.dominio.entities import Autenticacion as Auth
+from saludtech.modulos.auth.dominio.fabricas import FabricaAuth
+from saludtech.modulos.auth.infraestructura.dto import AuthLog as AuthDTO
+from saludtech.modulos.auth.infraestructura.mapeadores import MapeadorAuth
+from uuid import UUID
 
-    def get_by_credentials(self, username: str, password: str):
-        """
-        Retorna el usuario si las credenciales coinciden, None si no.
-        """
-        dto = self.session.query(AuthUserDTO).filter_by(username=username, password=password).first()
-        if dto:
-            return AuthUser(
-                id=dto.id,
-                username=dto.username,
-                password=dto.password,
-                role=dto.role
-            )
-        return None
+class RepositorioAuthSQLite(RepositorioAuth):
 
-    def get_by_id(self, user_id: int):
-        dto = self.session.query(AuthUserDTO).get(user_id)
-        if dto:
-            return AuthUser(
-                id=dto.id,
-                username=dto.username,
-                password=dto.password,
-                role=dto.role
-            )
-        return None
+    def __init__(self):
+        self._fabrica_auth: FabricaAuth = FabricaAuth()
+
+    @property
+    def fabrica_auth(self):
+        return self._fabrica_auth
+
+    def obtener_por_id(self, id: UUID) -> Auth:
+        auth_dto = db.session.query(AuthDTO).filter_by(id=str(id)).one_or_none()
+        return self.fabrica_auth.crear_objeto(auth_dto, MapeadorAuth()) if auth_dto else None
+
+    def obtener_por_username(self, username: str) -> Auth:
+        auth_dto = db.session.query(AuthDTO).filter_by(username=username).one_or_none()
+        return self.fabrica_auth.crear_objeto(auth_dto, MapeadorAuth()) if auth_dto else None
+
+    def agregar(self, auth: Auth):
+        auth_dto = self.fabrica_auth.crear_objeto(auth, MapeadorAuth())
+        db.session.add(auth_dto)
+        db.session.commit()
